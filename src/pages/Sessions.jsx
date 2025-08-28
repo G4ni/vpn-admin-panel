@@ -1,45 +1,85 @@
-import React from 'react';
-import { Api } from '../api';
+import { useEffect, useState } from 'react'
+import { hub } from '../lib/api'
 
 export default function Sessions() {
-  const [sessions, setSessions] = React.useState([]);
-  const reload = async () => {
-    const r = await Api.sessions();
-    setSessions(r.sessions || []);
-  };
-  React.useEffect(()=>{ reload(); }, []);
+  const [sessions, setSessions] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [msg, setMsg] = useState('')
 
-  const disconnect = async (name) => {
-    const r = await Api.disconnect(name);
-    alert(r.message || (r.success ? 'Disconnected' : 'Failed'));
-    reload();
-  };
+  async function load() {
+    setLoading(true); setMsg('')
+    try {
+      const data = await hub.sessions()
+      setSessions(Array.isArray(data.sessions) ? data.sessions : [])
+    } catch (e) {
+      setMsg('Error: ' + (e.message || e))
+    } finally {
+      setLoading(false)
+    }
+  }
 
-  const disconnectAll = async () => {
-    const r = await Api.disconnectAll();
-    alert(`Disconnected: ${r.count || 0}`);
-    reload();
-  };
+  useEffect(() => {
+    load()
+    const t = setInterval(load, 5000)
+    return () => clearInterval(t)
+  }, [])
+
+  async function onDisconnect(name) {
+    if (!confirm(`Disconnect ${name}?`)) return
+    setMsg(''); setLoading(true)
+    try {
+      const r = await hub.disconnect(name)
+      setMsg(r.message || 'Disconnected')
+      await load()
+    } catch (e) {
+      setMsg('Error: ' + (e.message || e))
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <div>
       <h2>Sessions</h2>
-      <button onClick={disconnectAll} style={{margin:'10px 0'}}>Disconnect ALL (non-SecureNAT)</button>
-      <table border="1" cellPadding="6" style={{borderCollapse:'collapse', width:'100%'}}>
-        <thead><tr><th>Name</th><th>User</th><th>Host</th><th>TCP</th><th>Aksi</th></tr></thead>
-        <tbody>
-          {(sessions||[]).map((s,i)=>(
+      <div style={{margin:'8px 0'}}>
+        <button onClick={load} disabled={loading}>Refresh</button>
+      </div>
+      {msg && <div style={{color: msg.startsWith('Error')?'crimson':'#0a0'}}>{msg}</div>}
+
+      <div style={{overflow:'auto'}}>
+        <table border="1" cellPadding="6" style={{borderCollapse:'collapse', width:'100%'}}>
+          <thead>
+            <tr>
+              <th>Session Name</th>
+              <th>User</th>
+              <th>Host</th>
+              <th>TCP</th>
+              <th>Bytes</th>
+              <th>Packets</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+          {sessions.length === 0 ? (
+            <tr><td colSpan="7" style={{textAlign:'center', color:'#64748b'}}>No active sessions</td></tr>
+          ) : sessions.map((s, i) => (
             <tr key={i}>
-              <td>{s.name}</td>
+              <td>{s.name || s['Session Name']}</td>
               <td>{s['User Name'] || '-'}</td>
               <td>{s['Source Host Name'] || '-'}</td>
               <td>{s['TCP Connections'] || '-'}</td>
-              <td><button onClick={()=>disconnect(s.name)}>Disconnect</button></td>
+              <td>{s['Transfer Bytes'] || '-'}</td>
+              <td>{s['Transfer Packets'] || '-'}</td>
+              <td>
+                <button onClick={() => onDisconnect(s.name || s['Session Name'])} style={{color:'crimson'}}>
+                  Disconnect
+                </button>
+              </td>
             </tr>
           ))}
-          {(!sessions || sessions.length===0) && <tr><td colSpan="5">No sessions</td></tr>}
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
     </div>
-  );
+  )
 }
