@@ -8,7 +8,7 @@ const linkStyle = ({isActive}) => ({
 
 export default function Nav() {
   return (
-    <aside style={{borderRight:'1px solid #eee', padding:'18px 10px'}}>
+    <aside style={{width:180, borderRight:'1px solid #eee', padding:'18px 10px'}}>
       <h3 style={{margin:'0 8px 12px'}}>VPN Admin</h3>
       <NavLink to="/dashboard" style={linkStyle}>Dashboard</NavLink>
       <NavLink to="/users" style={linkStyle}>Users</NavLink>
