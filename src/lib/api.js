@@ -1,50 +1,42 @@
-const BASE = import.meta.env.VITE_API_BASE || '/api';
-const API_KEY = import.meta.env.VITE_API_KEY;
+const API_BASE = '/api'; // PAKSA /api biar tidak salah env/cache
+const API_KEY  = import.meta.env.VITE_API_KEY || '17AgustusTahun1945ItulahHariKemerdekaanKitaHariMerdekaNusaDanBangsa';
 
-async function request(path, opts = {}) {
-  const headers = {
-    'x-api-key': API_KEY,
-    ...(opts.method === 'POST' ? {'Content-Type':'application/json'} : {}),
-    ...(opts.headers || {}),
+async function api(path, opts = {}) {
+  const url = API_BASE + path;
+  const init = {
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': API_KEY,
+      ...(opts.headers || {}),
+    },
+    ...opts,
   };
-  const res = await fetch(`${BASE}${path}`, { ...opts, headers });
-  const ct = res.headers.get('content-type') || '';
-  if (ct.includes('application/json')) {
-    const j = await res.json();
-    if (!res.ok) throw new Error(j.error || res.statusText);
-    return j;
-  } else {
-    const t = await res.text();
-    if (!res.ok) throw new Error(t || res.statusText);
-    return t;
-  }
+  const res = await fetch(url, init);
+  const raw = await res.text();
+  let data;
+  try { data = raw ? JSON.parse(raw) : {}; } catch { data = { raw }; }
+  if (!res.ok) throw new Error(data?.message || data?.error || `HTTP ${res.status}`);
+  return data;
 }
 
-export const api = {
-  health: () => request('/metrics/health'),
-  listUsers: () => request('/vpn/list'),
-  createUser: (email) => request('/vpn/create', { method:'POST', body: JSON.stringify({ email }) }),
-  deleteUser: (email) => request('/vpn/delete', { method:'POST', body: JSON.stringify({ email }) }),
-  downloadOvpn: async (username) => {
-    const headers = { 'x-api-key': API_KEY };
-    const res = await fetch(`${BASE}/vpn/ovpn?username=${encodeURIComponent(username)}`, { headers });
-    if (!res.ok) throw new Error(await res.text());
-    const blob = await res.blob();
-    return blob;
-  },
+// Gunakan endpoint yang EXIST di server:
+// metrics = GET /metrics
+export const getHealth    = () => api('/metrics');
+
+// Users
+export const listUsers    = () => api('/vpn/list');
+export const createUser   = (email) => api('/vpn/create', { method:'POST', body: JSON.stringify({ email }) });
+export const setPassword  = (email, password) => api('/vpn/set-password', { method:'POST', body: JSON.stringify({ email, password }) });
+export const delUser      = (email) => api('/vpn/delete', { method:'POST', body: JSON.stringify({ email }) });
+
+// Sessions
+export const listSessions = () => api('/hub/sessions');
+export const disconnect   = (sessionName) => api('/hub/disconnect', { method:'POST', body: JSON.stringify({ sessionName }) });
+
+// Download OVPN via <a href> (tidak bisa header), kirim api-key via query yang didukung server
+export const downloadOvpn = (emailOrUser) => {
+  const q = new URLSearchParams({ email: emailOrUser, x_api_key: API_KEY }).toString();
+  return `${API_BASE}/vpn/ovpn?${q}`;
 };
 
-export const hub = {
-  sessions: () => request('/hub/sessions'),
-  disconnect: (sessionName) => request('/hub/disconnect', {
-    method: 'POST',
-    body: JSON.stringify({ sessionName })
-  }),
-};
-
-export const acl = {
-  apply: (email) => request('/acl/apply', {
-    method: 'POST',
-    body: JSON.stringify({ email })
-  }),
-};
+export default api;

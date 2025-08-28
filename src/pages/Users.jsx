@@ -1,132 +1,81 @@
-import { useEffect, useState } from 'react'
-import { api, acl } from '../lib/api'
+import React from "react";
+import { listUsers, createUser, setPassword, delUser, downloadOvpn } from "../lib/api";
 
 export default function Users() {
-  const [users, setUsers] = useState([])
-  const [email, setEmail] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [msg, setMsg] = useState('')
+  const [users, setUsers] = React.useState([]);
+  const [email, setEmail] = React.useState("");
+  const [pass, setPass] = React.useState("");
+  const [msg, setMsg] = React.useState("");
 
   async function refresh() {
-    setLoading(true)
-    setMsg('')
-    try {
-      const data = await api.listUsers()
-      setUsers(Array.isArray(data.users) ? data.users : [])
-    } catch (e) {
-      setMsg('Error: ' + (e.message || e))
-    } finally {
-      setLoading(false)
-    }
+    setMsg("");
+    const d = await listUsers();
+    setUsers(d.users || []);
   }
 
-  useEffect(() => { refresh() }, [])
-
-  async function onCreate(e) {
-    e.preventDefault()
-    if (!email) return
-    setMsg(''); setLoading(true)
-    try {
-      const r = await api.createUser(email)
-      setMsg(r.message || 'User created')
-      setEmail('')
-      await refresh()
-    } catch (e) {
-      setMsg('Error: ' + (e.message || e))
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  async function onDelete(nameOrEmail) {
-    const emailLike = nameOrEmail.includes('@') ? nameOrEmail : `${nameOrEmail}@example.com`
-    if (!confirm(`Delete user ${emailLike}?`)) return
-    setMsg(''); setLoading(true)
-    try {
-      const r = await api.deleteUser(emailLike)
-      setMsg(r.message || 'User deleted')
-      await refresh()
-    } catch (e) {
-      setMsg('Error: ' + (e.message || e))
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  async function onDownloadOvpn(username) {
-    try {
-      const blob = await api.downloadOvpn(username)
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `${username}.ovpn`
-      document.body.appendChild(a)
-      a.click()
-      a.remove()
-      URL.revokeObjectURL(url)
-    } catch (e) {
-      setMsg('Download error: ' + (e.message || e))
-    }
-  }
-
-  async function onApplyAcl(nameOrEmail) {
-    const emailLike = nameOrEmail.includes('@') ? nameOrEmail : `${nameOrEmail}@example.com`
-    setMsg(''); setLoading(true)
-    try {
-      const r = await acl.apply(emailLike)
-      setMsg(r.message || 'ACL applied')
-    } catch (e) {
-      setMsg('Error: ' + (e.message || e))
-    } finally {
-      setLoading(false)
-    }
-  }
+  React.useEffect(() => { refresh().catch(e => setMsg(String(e))); }, []);
 
   return (
     <div>
       <h2>Users</h2>
 
-      <form onSubmit={onCreate} style={{display:'flex', gap:8, margin:'12px 0'}}>
-        <input
-          type="email" placeholder="email@domain.tld"
-          value={email} onChange={e=>setEmail(e.target.value)}
-          style={{padding:8, minWidth:260}}
-        />
-        <button disabled={loading}>Create</button>
-        <button type="button" onClick={refresh} disabled={loading}>Refresh</button>
-      </form>
+      {msg && <div style={{ padding: 8, background: "#fff3cd", border: "1px solid #ffeeba" }}>{msg}</div>}
 
-      {msg && <div style={{margin:'8px 0', color: msg.startsWith('Error')?'crimson':'#0a0'}}>
-        {msg}
-      </div>}
+      <div style={{ display:"flex", gap:8, marginBottom:12 }}>
+        <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="email user" style={{ padding:8 }} />
+        <button onClick={async ()=>{
+          if(!email) return setMsg("isi email dulu");
+          try {
+            const r = await createUser(email);
+            setMsg(r.message || "created");
+            await refresh();
+          } catch(e) { setMsg(String(e.message||e)); }
+        }}>Create</button>
 
-      <div style={{overflow:'auto'}}>
-        <table border="1" cellPadding="6" style={{borderCollapse:'collapse', width:'100%'}}>
-          <thead>
-            <tr>
-              <th>Username</th>
-              <th>Group</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {(users||[]).length === 0 ? (
-              <tr><td colSpan="3" style={{textAlign:'center', color:'#64748b'}}>No users</td></tr>
-            ) : users.map((u, i) => (
-              <tr key={i}>
-                <td>{u.name}</td>
-                <td>{u.group || '-'}</td>
-                <td style={{display:'flex', gap:8}}>
-                  <button onClick={() => onApplyAcl(u.name)}>ACL</button>
-                  <button onClick={() => onDownloadOvpn(u.name)}>OVPN</button>
-                  <button onClick={() => onDelete(u.name)} style={{color:'crimson'}}>Delete</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <input value={pass} onChange={e=>setPass(e.target.value)} placeholder="new password" style={{ padding:8 }} />
+        <button onClick={async ()=>{
+          if(!email || !pass) return setMsg("isi email & password");
+          try {
+            const r = await setPassword(email, pass);
+            setMsg(r.message || "password updated");
+          } catch(e) { setMsg(String(e.message||e)); }
+        }}>Set Password</button>
+
+        <button onClick={async ()=>{
+          if(!email) return setMsg("isi email dulu");
+          try {
+            const r = await delUser(email);
+            setMsg(r.message || "deleted");
+            await refresh();
+          } catch(e) { setMsg(String(e.message||e)); }
+        }}>Delete</button>
+
+        <a href={downloadOvpn(email)} style={{ padding:8, border:"1px solid #ddd", borderRadius:6, textDecoration:"none" }}>
+          Download OVPN
+        </a>
       </div>
 
+      <table style={{ width:"100%", borderCollapse:"collapse" }}>
+        <thead>
+          <tr>
+            <th style={td}>User</th>
+            <th style={td}>Group</th>
+          </tr>
+        </thead>
+        <tbody>
+          {users.map((u, i)=>(
+            <tr key={i}>
+              <td style={td}>{u.name}</td>
+              <td style={td}>{u.group || "-"}</td>
+            </tr>
+          ))}
+          {!users.length && (
+            <tr><td style={td} colSpan={2}>No users</td></tr>
+          )}
+        </tbody>
+      </table>
     </div>
-  )
+  );
 }
+
+const td = { border:"1px solid #eee", padding:"8px 10px", textAlign:"left" };
