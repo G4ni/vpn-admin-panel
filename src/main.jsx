@@ -1,10 +1,12 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter, Routes, Route, NavLink, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Dashboard from "./pages/Dashboard.jsx";
 import Users from "./pages/Users.jsx";
 import Sessions from "./pages/Sessions.jsx";
 import Tools from "./pages/Tools.jsx";
+import Nav from "./components/Nav.jsx";
+import Topbar from "./components/Topbar.jsx";
 
 function ErrorBoundary({ children }) {
   const [err, setErr] = React.useState(null);
@@ -39,16 +41,11 @@ function BoundarySetter({ children, onError }) {
 function Layout({ children }) {
   return (
     <div style={{ display: "flex", minHeight: "100vh", fontFamily: "system-ui, Arial" }}>
-      <aside style={{ width: 180, borderRight: "1px solid #eee", padding: 16 }}>
-        <h3 style={{ marginTop: 0 }}>VPN Admin</h3>
-        <nav style={{ display: "grid", gap: 8 }}>
-          <NavLink to="/dashboard">Dashboard</NavLink>
-          <NavLink to="/users">Users</NavLink>
-          <NavLink to="/sessions">Sessions</NavLink>
-          <NavLink to="/tools">Tools</NavLink>
-        </nav>
-      </aside>
-      <main style={{ flex: 1, padding: 24 }}>{children}</main>
+      <Nav />
+      <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+        <Topbar />
+        <main style={{ flex: 1, padding: 24 }}>{children}</main>
+      </div>
     </div>
   );
 }
