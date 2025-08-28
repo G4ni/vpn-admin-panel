@@ -32,11 +32,19 @@ export const delUser      = (email) => api('/vpn/delete', { method:'POST', body:
 // Sessions
 export const listSessions = () => api('/hub/sessions');
 export const disconnect   = (sessionName) => api('/hub/disconnect', { method:'POST', body: JSON.stringify({ sessionName }) });
+export const disconnectAll = () => api('/hub/disconnect-all', { method:'POST' });
 
 // Download OVPN via <a href> (tidak bisa header), kirim api-key via query yang didukung server
 export const downloadOvpn = (emailOrUser) => {
   const q = new URLSearchParams({ email: emailOrUser, x_api_key: API_KEY }).toString();
   return `${API_BASE}/vpn/ovpn?${q}`;
 };
+
+// Cleanup utilities
+export const cleanupInactive = (days = 30) =>
+  api('/cleanup/inactive', {
+    method: 'POST',
+    body: JSON.stringify({ days }),
+  });
 
 export default api;
