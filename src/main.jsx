@@ -1,6 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route, NavLink, Navigate } from "react-router-dom";
+import "./styles.css";
 import Dashboard from "./pages/Dashboard.jsx";
 import Users from "./pages/Users.jsx";
 import Sessions from "./pages/Sessions.jsx";

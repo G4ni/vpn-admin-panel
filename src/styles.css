@@ -1,0 +1,13 @@
+body { margin: 0; font-family: system-ui, Arial; }
+.sidebar { border-right: 1px solid #eee; padding: 18px 10px; }
+.nav-title { margin: 0 8px 12px; }
+.nav-link { display: block; padding: 10px 12px; border-radius: 10px; margin: 6px 8px; text-decoration: none; color: #333; }
+.nav-link.active { color: #fff; background: #3b82f6; }
+.error-box { padding: 12px; background: #ffe8e8; border: 1px solid #f5bcbc; margin-bottom: 12px; }
+.alert { padding: 8px; background: #fff3cd; border: 1px solid #ffeeba; }
+.data-table { width: 100%; border-collapse: collapse; }
+.table-cell { border: 1px solid #eee; padding: 8px 10px; text-align: left; }
+.form-row { display: flex; gap: 8px; margin-bottom: 12px; }
+.text-input { padding: 8px; }
+.download-link { padding: 8px; border: 1px solid #ddd; border-radius: 6px; text-decoration: none; }
+.pre-box { background: #f6f8fa; padding: 16px; border-radius: 8px; }

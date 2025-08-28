@@ -19,10 +19,10 @@ export default function Users() {
     <div>
       <h2>Users</h2>
 
-      {msg && <div style={{ padding: 8, background: "#fff3cd", border: "1px solid #ffeeba" }}>{msg}</div>}
+      {msg && <div className="alert">{msg}</div>}
 
-      <div style={{ display:"flex", gap:8, marginBottom:12 }}>
-        <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="email user" style={{ padding:8 }} />
+      <div className="form-row">
+        <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="email user" className="text-input" />
         <button onClick={async ()=>{
           if(!email) return setMsg("isi email dulu");
           try {
@@ -32,7 +32,7 @@ export default function Users() {
           } catch(e) { setMsg(String(e.message||e)); }
         }}>Create</button>
 
-        <input value={pass} onChange={e=>setPass(e.target.value)} placeholder="new password" style={{ padding:8 }} />
+        <input value={pass} onChange={e=>setPass(e.target.value)} placeholder="new password" className="text-input" />
         <button onClick={async ()=>{
           if(!email || !pass) return setMsg("isi email & password");
           try {
@@ -50,32 +50,30 @@ export default function Users() {
           } catch(e) { setMsg(String(e.message||e)); }
         }}>Delete</button>
 
-        <a href={downloadOvpn(email)} style={{ padding:8, border:"1px solid #ddd", borderRadius:6, textDecoration:"none" }}>
+        <a href={downloadOvpn(email)} className="download-link">
           Download OVPN
         </a>
       </div>
 
-      <table style={{ width:"100%", borderCollapse:"collapse" }}>
+      <table className="data-table">
         <thead>
           <tr>
-            <th style={td}>User</th>
-            <th style={td}>Group</th>
+            <th className="table-cell">User</th>
+            <th className="table-cell">Group</th>
           </tr>
         </thead>
         <tbody>
           {users.map((u, i)=>(
             <tr key={i}>
-              <td style={td}>{u.name}</td>
-              <td style={td}>{u.group || "-"}</td>
+              <td className="table-cell">{u.name}</td>
+              <td className="table-cell">{u.group || "-"}</td>
             </tr>
           ))}
           {!users.length && (
-            <tr><td style={td} colSpan={2}>No users</td></tr>
+            <tr><td className="table-cell" colSpan={2}>No users</td></tr>
           )}
         </tbody>
       </table>
     </div>
   );
 }
-
-const td = { border:"1px solid #eee", padding:"8px 10px", textAlign:"left" };
