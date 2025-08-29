@@ -24,17 +24,15 @@ router.post("/create", async (req, res) => {
 });
 
 // LIST users
-router.post("/create", async (req, res) => {
-  const { email } = req.body || {};
-  if (!email) return res.status(400).json({ success: false, error: "Email required" });
-  const username = usernameFromEmail(email);
-  const password = "asaku123";
+router.get("/list", async (_req, res) => {
   try {
-    await vpnService.createUser(username, password);
-    res.json({ success: true, message: `User ${username} created`, password });
+    const users = await vpnService.listUsers();
+    res.json({ success: true, users });
   } catch (err) {
-    console.error("createUser error:", err);
-    res.status(503).json({ success: false, error: "SoftEther CLI busy, try again." });
+    console.error("listUsers error:", err);
+    res
+      .status(503)
+      .json({ success: false, error: "SoftEther CLI busy, try again." });
   }
 });
 
