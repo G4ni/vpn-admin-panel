@@ -290,7 +290,7 @@ function _fresh(bucket) {
 
 
 module.exports.listSessionsCached = {
-  listSessionsCached;
+  listSessionsCached,
   ensureDirs,
   runVpnCmd,
   createUser,
