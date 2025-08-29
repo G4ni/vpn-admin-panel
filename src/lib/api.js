@@ -1,4 +1,6 @@
-const API_BASE = '/api'; // PAKSA /api biar tidak salah env/cache
+// Gunakan VITE_API_BASE bila tersedia agar panel dapat diarahkan ke API yang benar.
+// Default ke '/api' untuk kompatibilitas lokal.
+const API_BASE = import.meta.env.VITE_API_BASE || '/api';
 const API_KEY  = import.meta.env.VITE_API_KEY || '17AgustusTahun1945ItulahHariKemerdekaanKitaHariMerdekaNusaDanBangsa';
 
 async function api(path, opts = {}) {
