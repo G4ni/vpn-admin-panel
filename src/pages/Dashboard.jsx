@@ -14,7 +14,16 @@ export default function Dashboard() {
     let alive = true;
     getHealth()
       .then((d) => alive && setData(d))
-      .catch((e) => alive && setErr(String(e.message || e)));
+      .catch((e) => {
+        if (!alive) return;
+        const rawMsg = e?.message || String(e);
+        console.error("Dashboard health check failed:", e);
+        let userMsg = rawMsg;
+        if (/network/i.test(rawMsg) || /fetch/i.test(rawMsg)) {
+          userMsg = "Unable to contact API. Check API base URL or server status.";
+        }
+        setErr(userMsg);
+      });
     return () => {
       alive = false;
     };
