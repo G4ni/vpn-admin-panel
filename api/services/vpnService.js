@@ -76,7 +76,13 @@ async function listUsers() {
     return { name: parts[0], group: parts[1] || null };
   }).filter(u => u.name && !/^user\s*name$/i.test(u.name));
 
+  // dedup
+  const seen = new Set();
+  const unique = users.filter(u => !seen.has(u.name) && seen.add(u.name));
 
+  _cache.users = { data: unique, ts: Date.now() };
+  return unique;
+}
 
 // List session (raw)
 async function listSessionsCached() {
@@ -224,15 +230,6 @@ async function deleteAclById(id) {
 }
 
 
-// dedup
-  const seen = new Set();
-  const unique = users.filter(u => !seen.has(u.name) && seen.add(u.name));
-
-  _cache.users = { data: unique, ts: Date.now() };
-  return unique;
-}
-
-
 
 // Generate file OVPN
 function generateOvpn(username, serverAddr, port = 1194, proto = 'udp') {
@@ -289,7 +286,7 @@ function _fresh(bucket) {
 }
 
 
-module.exports.listSessionsCached = {
+module.exports = {
   listSessionsCached,
   ensureDirs,
   runVpnCmd,
@@ -297,7 +294,6 @@ module.exports.listSessionsCached = {
   deleteUser,
   setPassword,
   listUsers,
-  sessionListRaw,
   parseSessionList,
   generateOvpn,
   randPass,
