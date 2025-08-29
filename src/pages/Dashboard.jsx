@@ -30,11 +30,11 @@ export default function Dashboard() {
           <div className="grid grid-4" style={{ marginBottom: 24 }}>
             <div className="card">
               <div className="card-title">CPU Usage</div>
-              <div className="card-value">{metricValue(data.cpuUsage ?? data.cpu, "%")}</div>
+              <div className="card-value">{metricValue(data.cpuUsage, "%")}</div>
             </div>
             <div className="card">
               <div className="card-title">Memory Usage</div>
-              <div className="card-value">{metricValue(data.memoryUsage ?? data.memory, "%")}</div>
+              <div className="card-value">{metricValue(data.memoryUsage, "%")}</div>
             </div>
             <div className="card">
               <div className="card-title">Disk Usage</div>

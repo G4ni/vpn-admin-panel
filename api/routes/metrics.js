@@ -57,14 +57,22 @@ function getDiskUsage(cb) {
 router.get("/", (req, res) => {
   const systemUptimeSec = getSystemUptimeSec();
   const processUptimeSec = Math.floor(process.uptime());
+  const loadavg = os.loadavg();
+  const freemem = os.freemem();
+  const totalmem = os.totalmem();
+  const cpus = os.cpus().length;
+  const cpuUsage = cpus ? (loadavg[0] / cpus) * 100 : 0;
+  const memoryUsage = totalmem ? (1 - freemem / totalmem) * 100 : 0;
   const base = {
     uptime: processUptimeSec,
     processUptimeSec,
     systemUptimeSec,
-    loadavg: os.loadavg(),
-    freemem: os.freemem(),
-    totalmem: os.totalmem(),
-    cpus: os.cpus().length,
+    loadavg,
+    freemem,
+    totalmem,
+    cpus,
+    cpuUsage,
+    memoryUsage,
     timestamp: new Date()
   };
   const net = getNetBytes();
