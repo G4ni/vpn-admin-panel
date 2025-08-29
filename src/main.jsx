@@ -1,6 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import "./styles.css";
 import Dashboard from "./pages/Dashboard.jsx";
 import Users from "./pages/Users.jsx";
 import Sessions from "./pages/Sessions.jsx";
@@ -40,11 +41,11 @@ function BoundarySetter({ children, onError }) {
 
 function Layout({ children }) {
   return (
-    <div style={{ display: "flex", minHeight: "100vh", fontFamily: "system-ui, Arial" }}>
+    <div style={{ display: "flex", minHeight: "100vh" }}>
       <Nav />
       <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
         <Topbar />
-        <main style={{ flex: 1, padding: 24 }}>{children}</main>
+        <main>{children}</main>
       </div>
     </div>
   );
