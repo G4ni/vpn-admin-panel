@@ -3,6 +3,13 @@
 const API_BASE = import.meta.env.VITE_API_BASE || '/api';
 const API_KEY  = import.meta.env.VITE_API_KEY || '17AgustusTahun1945ItulahHariKemerdekaanKitaHariMerdekaNusaDanBangsa';
 
+// Warn early if the API cannot be reached – helps detect misconfigured VITE_API_BASE.
+if (typeof window !== 'undefined') {
+  fetch(API_BASE + '/metrics').catch(err => {
+    console.warn(`Unable to reach API at ${API_BASE}; check VITE_API_BASE`, err);
+  });
+}
+
 async function api(path, opts = {}) {
   const url = API_BASE + path;
   const init = {
