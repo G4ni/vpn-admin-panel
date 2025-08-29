@@ -13,69 +13,124 @@ export default function Users() {
     setUsers(d.users || []);
   }
 
-  React.useEffect(() => { refresh().catch(e => setMsg(String(e))); }, []);
+  React.useEffect(() => {
+    refresh().catch((e) => setMsg(String(e)));
+  }, []);
+
+  const online = users.filter((u) => u.online || u.status === "online").length;
+  const offline = users.length - online;
 
   return (
     <div>
-      <h2>Users</h2>
+      <h2 style={{ marginBottom: 16 }}>VPN Users</h2>
 
-      {msg && <div style={{ padding: 8, background: "#fff3cd", border: "1px solid #ffeeba" }}>{msg}</div>}
+      {msg && <div className="alert">{msg}</div>}
 
-      <div style={{ display:"flex", gap:8, marginBottom:12 }}>
-        <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="email user" style={{ padding:8 }} />
-        <button onClick={async ()=>{
-          if(!email) return setMsg("isi email dulu");
-          try {
-            const r = await createUser(email);
-            setMsg(r.message || "created");
-            await refresh();
-          } catch(e) { setMsg(String(e.message||e)); }
-        }}>Create</button>
+      <div className="grid grid-4" style={{ marginBottom: 24 }}>
+        <div className="card">
+          <div className="card-title">Total Users</div>
+          <div className="card-value">{users.length}</div>
+        </div>
+        <div className="card">
+          <div className="card-title">Online Now</div>
+          <div className="card-value">{online}</div>
+        </div>
+        <div className="card">
+          <div className="card-title">Offline</div>
+          <div className="card-value">{offline}</div>
+        </div>
+      </div>
 
-        <input value={pass} onChange={e=>setPass(e.target.value)} placeholder="new password" style={{ padding:8 }} />
-        <button onClick={async ()=>{
-          if(!email || !pass) return setMsg("isi email & password");
-          try {
-            const r = await setPassword(email, pass);
-            setMsg(r.message || "password updated");
-          } catch(e) { setMsg(String(e.message||e)); }
-        }}>Set Password</button>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
+        <input
+          className="input"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="user email"
+        />
+        <button
+          className="button"
+          onClick={async () => {
+            if (!email) return setMsg("isi email dulu");
+            try {
+              const r = await createUser(email);
+              setMsg(r.message || "created");
+              await refresh();
+            } catch (e) {
+              setMsg(String(e.message || e));
+            }
+          }}
+        >
+          Create
+        </button>
 
-        <button onClick={async ()=>{
-          if(!email) return setMsg("isi email dulu");
-          try {
-            const r = await delUser(email);
-            setMsg(r.message || "deleted");
-            await refresh();
-          } catch(e) { setMsg(String(e.message||e)); }
-        }}>Delete</button>
+        <input
+          className="input"
+          value={pass}
+          onChange={(e) => setPass(e.target.value)}
+          placeholder="new password"
+        />
+        <button
+          className="button"
+          onClick={async () => {
+            if (!email || !pass) return setMsg("isi email & password");
+            try {
+              const r = await setPassword(email, pass);
+              setMsg(r.message || "password updated");
+            } catch (e) {
+              setMsg(String(e.message || e));
+            }
+          }}
+        >
+          Set Password
+        </button>
 
-        <a href={downloadOvpn(email)} style={{ padding:8, border:"1px solid #ddd", borderRadius:6, textDecoration:"none" }}>
+        <button
+          className="button secondary"
+          onClick={async () => {
+            if (!email) return setMsg("isi email dulu");
+            try {
+              const r = await delUser(email);
+              setMsg(r.message || "deleted");
+              await refresh();
+            } catch (e) {
+              setMsg(String(e.message || e));
+            }
+          }}
+        >
+          Delete
+        </button>
+
+        <a
+          className="button"
+          style={{ textDecoration: "none" }}
+          href={downloadOvpn(email)}
+        >
           Download OVPN
         </a>
       </div>
 
-      <table style={{ width:"100%", borderCollapse:"collapse" }}>
+      <table className="table">
         <thead>
           <tr>
-            <th style={td}>User</th>
-            <th style={td}>Group</th>
+            <th>User</th>
+            <th>Group</th>
           </tr>
         </thead>
         <tbody>
-          {users.map((u, i)=>(
+          {users.map((u, i) => (
             <tr key={i}>
-              <td style={td}>{u.name}</td>
-              <td style={td}>{u.group || "-"}</td>
+              <td>{u.name}</td>
+              <td>{u.group || "-"}</td>
             </tr>
           ))}
           {!users.length && (
-            <tr><td style={td} colSpan={2}>No users</td></tr>
+            <tr>
+              <td colSpan={2}>No users</td>
+            </tr>
           )}
         </tbody>
       </table>
     </div>
   );
 }
-
-const td = { border:"1px solid #eee", padding:"8px 10px", textAlign:"left" };
