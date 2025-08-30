@@ -13,7 +13,7 @@ async function req(path, opts={}) {
 
 export const Api = {
   // metrics
-  health:      () => req('/metrics/health'),
+  health:      () => req('/metrics'),
 
   // users
   usersList:   () => req('/vpn/list'),

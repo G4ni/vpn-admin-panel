@@ -3,3 +3,10 @@ dist/
 .env
 .DS_Store
 *.log
+api/.env
+api/node_modules/
+api/configs/
+*.ovpn
+api/.env
+.env
+.env
