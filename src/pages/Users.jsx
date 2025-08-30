@@ -1,7 +1,9 @@
 import React from 'react';
-import { Plus, KeyRound, Trash2, Download } from 'lucide-react';
+import { Plus, KeyRound, Trash2, Download, Users as UsersIcon, UserCheck, UserX } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { listUsers, createUser, setPassword, delUser, downloadOvpn } from '../lib/api';
+import StatCard from '../components/StatCard';
+import { isOnline } from '../lib/utils';
 
 export default function Users() {
   const [users, setUsers] = React.useState([]);
@@ -68,7 +70,7 @@ export default function Users() {
     }
   };
 
-  const online = users.filter((u) => u.online || u.status === 'online').length;
+  const online = users.filter(isOnline).length;
   const offline = users.length - online;
 
   return (
@@ -136,18 +138,9 @@ export default function Users() {
       </table>
 
       <div className="grid grid-3" style={{ marginTop: 24 }}>
-        <div className="card">
-          <div className="card-title">Total Users</div>
-          <div className="card-value">{users.length}</div>
-        </div>
-        <div className="card">
-          <div className="card-title">Online</div>
-          <div className="card-value">{online}</div>
-        </div>
-        <div className="card">
-          <div className="card-title">Offline</div>
-          <div className="card-value">{offline}</div>
-        </div>
+        <StatCard icon={UsersIcon} title="Total Users" value={users.length} color="#2563eb" bg="rgba(37,99,235,0.15)" />
+        <StatCard icon={UserCheck} title="Online" value={online} color="#22c55e" bg="rgba(34,197,94,0.15)" />
+        <StatCard icon={UserX} title="Offline" value={offline} color="#ef4444" bg="rgba(239,68,68,0.15)" />
       </div>
     </div>
   );
