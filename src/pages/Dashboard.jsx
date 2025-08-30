@@ -1,7 +1,8 @@
 import React from 'react';
 import { Cpu, HardDrive, MemoryStick, Timer, Users, UserCheck, UserX } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { getHealth, listUsers } from '../lib/api';
+import StatCard from '../components/StatCard';
+import { isOnline } from '../lib/utils';
 
 function formatBytes(b) {
   if (!b && b !== 0) return '-';
@@ -20,20 +21,6 @@ function formatUptime(sec) {
   return `${h}:${m}:${s}`;
 }
 
-const Card = ({ icon: Icon, title, value, sub }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 8 }}
-    animate={{ opacity: 1, y: 0 }}
-    className="card"
-  >
-    <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-      <Icon size={16} /> {title}
-    </div>
-    <div className="card-value">{value}</div>
-    {sub && <div style={{ fontSize: 12, color: '#666' }}>{sub}</div>}
-  </motion.div>
-);
-
 export default function Dashboard() {
   const [metrics, setMetrics] = React.useState(null);
   const [users, setUsers] = React.useState({ total: 0, online: 0, offline: 0 });
@@ -48,7 +35,7 @@ export default function Dashboard() {
         const [m, u] = await Promise.all([getHealth(), listUsers()]);
         setMetrics(m);
         const list = u.users || [];
-        const online = list.filter((x) => x.online || x.status === 'online').length;
+        const online = list.filter(isOnline).length;
         setUsers({ total: list.length, online, offline: list.length - online });
         setStatus('OK');
         setError('');
@@ -88,25 +75,29 @@ export default function Dashboard() {
       </h2>
       {error && <div className="alert" style={{ marginBottom: 16 }}>{error}</div>}
       <div className="grid grid-4" style={{ marginBottom: 24 }}>
-        <Card icon={Cpu} title="CPU Usage" value={cpu !== undefined ? `${cpu}%` : '-'} />
-        <Card
+        <StatCard icon={Cpu} title="CPU Usage" value={cpu !== undefined ? `${cpu}%` : '-'} color="#3b82f6" bg="rgba(59,130,246,0.15)" />
+        <StatCard
           icon={MemoryStick}
           title="Memory Usage"
           value={memPct !== undefined ? `${memPct.toFixed(1)}%` : '-'}
           sub={memUsed !== undefined ? `${formatBytes(memUsed)} / ${formatBytes(memTotal)}` : undefined}
+          color="#22c55e"
+          bg="rgba(34,197,94,0.15)"
         />
-        <Card
+        <StatCard
           icon={HardDrive}
           title="Disk Usage"
           value={diskPct !== undefined ? `${diskPct.toFixed(1)}%` : '-'}
           sub={diskUsed !== undefined ? `${formatBytes(diskUsed)} / ${formatBytes(diskTotal)}` : undefined}
+          color="#a855f7"
+          bg="rgba(168,85,247,0.15)"
         />
-        <Card icon={Timer} title="Uptime" value={uptime} />
+        <StatCard icon={Timer} title="Uptime" value={uptime} color="#14b8a6" bg="rgba(20,184,166,0.15)" />
       </div>
       <div className="grid grid-3">
-        <Card icon={Users} title="Total Users" value={users.total} />
-        <Card icon={UserCheck} title="Online Users" value={users.online} />
-        <Card icon={UserX} title="Offline Users" value={users.offline} />
+        <StatCard icon={Users} title="Total Users" value={users.total} color="#2563eb" bg="rgba(37,99,235,0.15)" />
+        <StatCard icon={UserCheck} title="Online Users" value={users.online} color="#22c55e" bg="rgba(34,197,94,0.15)" />
+        <StatCard icon={UserX} title="Offline Users" value={users.offline} color="#ef4444" bg="rgba(239,68,68,0.15)" />
       </div>
     </div>
   );
