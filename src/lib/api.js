@@ -1,51 +1,49 @@
-// Gunakan VITE_API_BASE bila tersedia agar panel dapat diarahkan ke API yang benar.
-// Default ke '/api' untuk kompatibilitas lokal.
-const API_BASE = import.meta.env.VITE_API_BASE || '/api';
-const API_KEY  = import.meta.env.VITE_API_KEY || '17AgustusTahun1945ItulahHariKemerdekaanKitaHariMerdekaNusaDanBangsa';
+const API_BASE = '/api';
+const API_KEY = import.meta.env.VITE_API_KEY || '17AgustusTahun1945ItulahHariKemerdekaanKitaHariMerdekaNusaDanBangsa';
 
-// Warn early if the API cannot be reached – helps detect misconfigured VITE_API_BASE.
-if (typeof window !== 'undefined') {
-  fetch(API_BASE + '/metrics').catch(err => {
-    console.warn(`Unable to reach API at ${API_BASE}; check VITE_API_BASE`, err);
-  });
-}
-
-async function api(path, opts = {}) {
+async function api(path, { retries = 0, retryDelay = 1000, headers = {}, ...opts } = {}) {
   const url = API_BASE + path;
   const init = {
     headers: {
       'Content-Type': 'application/json',
       'x-api-key': API_KEY,
-      ...(opts.headers || {}),
+      ...headers,
     },
     ...opts,
   };
-  const res = await fetch(url, init);
-  const raw = await res.text();
-  let data;
-  try { data = raw ? JSON.parse(raw) : {}; } catch { data = { raw }; }
-  if (!res.ok) throw new Error(data?.message || data?.error || `HTTP ${res.status}`);
-  return data;
+  try {
+    const res = await fetch(url, init);
+    const raw = await res.text();
+    let data;
+    try { data = raw ? JSON.parse(raw) : {}; } catch { data = { raw }; }
+    if (!res.ok) {
+      const msg = data?.message || data?.error || `HTTP ${res.status}`;
+      if (retries > 0) {
+        await new Promise(r => setTimeout(r, retryDelay));
+        return api(path, { retries: retries - 1, retryDelay: retryDelay * 2, headers, ...opts });
+      }
+      throw new Error(msg);
+    }
+    return data;
+  } catch (err) {
+    if (retries > 0) {
+      await new Promise(r => setTimeout(r, retryDelay));
+      return api(path, { retries: retries - 1, retryDelay: retryDelay * 2, headers, ...opts });
+    }
+    throw err;
+  }
 }
 
-// Gunakan endpoint yang EXIST di server:
-// metrics = GET /metrics
-export const getHealth    = () => api('/metrics');
-
-// Users
-export const listUsers    = () => api('/vpn/list');
+export const getHealth    = () => api('/metrics', { retries: 2 });
+export const listUsers    = () => api('/vpn/list', { retries: 2 });
 export const createUser   = (email) => api('/vpn/create', { method:'POST', body: JSON.stringify({ email }) });
-export const setPassword  = (email, password) => api('/vpn/set-password', { method:'POST', body: JSON.stringify({ email, password }) });
+export const setPassword  = (email, password) =>
+  api('/vpn/set-password', { method: 'POST', body: JSON.stringify({ email, password }) });
 export const delUser      = (email) => api('/vpn/delete', { method:'POST', body: JSON.stringify({ email }) });
-
-// Sessions
-export const listSessions = () => api('/hub/sessions');
-export const disconnect   = (sessionName) => api('/hub/disconnect', { method:'POST', body: JSON.stringify({ sessionName }) });
-
-// Download OVPN via <a href> (tidak bisa header), kirim api-key via query yang didukung server
-export const downloadOvpn = (emailOrUser) => {
-  const q = new URLSearchParams({ email: emailOrUser, x_api_key: API_KEY }).toString();
-  return `${API_BASE}/vpn/ovpn?${q}`;
-};
+export const listSessions = () => api('/hub/sessions', { retries: 2 });
+export const disconnect   = (sessionName) =>
+  api('/hub/disconnect', { method: 'POST', body: JSON.stringify({ sessionName }) });
+export const downloadOvpn = (emailOrUser) =>
+  `/api/vpn/ovpn?${new URLSearchParams({ email: emailOrUser, x_api_key: API_KEY }).toString()}`;
 
 export default api;
